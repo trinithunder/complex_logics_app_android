@@ -5,14 +5,15 @@ import 'secure_storage.dart';  // Import your SecureStorage helper
 import 'homepage.dart';
 import 'register_screen.dart';  // Import the registration screen
 
-class LoginScreen extends StatelessWidget {
+class RegisterScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Login")),
+      appBar: AppBar(title: Text("Register")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -26,29 +27,21 @@ class LoginScreen extends StatelessWidget {
               decoration: InputDecoration(labelText: 'Password'),
               obscureText: true,
             ),
+            TextField(
+              controller: confirmPasswordController,
+              decoration: InputDecoration(labelText: 'Confirm Password'),
+              obscureText: true,
+            ),
             ElevatedButton(
               onPressed: () async {
                 try {
-                  await login(emailController.text, passwordController.text);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomepageScreen()),
-                  );
+                  await register(emailController.text, passwordController.text);
+                  Navigator.pop(context);
                 } catch (e) {
-                  print('Login failed: $e');
+                  print('Registration failed: $e');
                 }
               },
-              child: Text('Login'),
-            ),
-            SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => RegisterScreen()),
-                );
-              },
-              child: Text("Don't have an account? Register here"),
+              child: Text('Register'),
             ),
           ],
         ),
@@ -56,20 +49,16 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Future<void> login(String email, String password) async {
-    final url = Uri.parse("http://localhost:3000/users/sign_in");
+  Future<void> register(String email, String password) async {
+    final url = Uri.parse("http://localhost:3000/users");
 
     final response = await http.post(url, body: {
       'email': email,
       'password': password,
     });
 
-    if (response.statusCode == 200) {
-      final responseData = json.decode(response.body);
-      final token = responseData['token'];
-      await SecureStorage.saveToken(token);  // Save token securely
-    } else {
-      throw Exception('Failed to login');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to register');
     }
   }
 }
